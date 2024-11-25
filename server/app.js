@@ -57,6 +57,21 @@ api1.delete('/delete', (pyynto, vastaus) => {
         vastaus.status(404).send('User not found.');
     }
 });
+api1.put('/update', (pyynto, vastaus) => {
+    const { nimi, tehtava } = pyynto.body;
+    let kayttaja = kayttis.find(k => k.nimi === nimi);
+    if (!kayttaja) {
+        return vastaus.status(404).send('User not found');
+    }
+    const todo = kayttaja.tehtavat.indexOf(tehtava);
+    if (todo === -1) {
+        return vastaus.status(404).send('Not found');
+    }
+
+    kayttaja.tehtavat.splice(todo, 1);
+    tallenna();
+    vastaus.send('Todo deleted successfully.');
+});
 
 api1.listen(PORTTI, () => console.log(`Täällä toimii http://localhost:${PORTTI}`));
 

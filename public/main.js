@@ -81,3 +81,58 @@ searchForm.addEventListener('submit', async (e) => {
         deleteMessage.textContent = `Virhe: ${error.message}`;
     }
 });
+searchForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const searchInput = document.getElementById('searchInput').value;
+
+    try {
+        const response = await fetch(`/todos/${searchInput}`);
+        
+        if (!response.ok) {
+            throw new Error(await response.text());
+        }
+
+        todosList.innerHTML = '';
+        searchMessage.textContent = '';
+        const todos = await response.json();
+        
+        todos.forEach(todo => {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.href = '#';
+            a.classList.add('delete-task');
+            a.textContent = todo;
+            li.appendChild(a);
+            todosList.appendChild(li);
+
+            a.addEventListener('click', async (e) => {
+                e.preventDefault();
+                try {
+                    const deleteResponse = await fetch('/update', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            nimi: searchInput,
+                            tehtava: todo
+                        })
+                    });
+
+                    if (!deleteResponse.ok) {
+                        throw new Error(await deleteResponse.text());
+                    }
+
+                    deleteMessage.textContent = await deleteResponse.text();
+                    li.remove(); 
+                } catch (error) {
+                    deleteMessage.textContent = `Virhe: ${error.message}`;
+                }
+            });
+        });
+    } catch (error) {
+        todosList.innerHTML = '';
+        searchMessage.textContent = `Virhe: ${error.message}`;
+    }
+});
