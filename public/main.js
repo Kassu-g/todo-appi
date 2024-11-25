@@ -8,7 +8,6 @@ const deleteMessage = document.getElementById('deleteMessage');
 
 lomake.addEventListener('submit', async (e) => {
     e.preventDefault();
-
     const nimiInput = document.getElementById('userInput').value;
     const tehtavaInput = document.getElementById('todoInput').value;
 
@@ -30,7 +29,6 @@ lomake.addEventListener('submit', async (e) => {
         viestiElementti.textContent = `Virhe: ${virhe.message}`;
     }
 });
-
 searchForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -47,20 +45,52 @@ searchForm.addEventListener('submit', async (e) => {
         searchMessage.textContent = '';
         deleteMessage.textContent = '';
         const todos = await response.json();
+
         todos.forEach(todo => {
             const li = document.createElement('li');
-            li.textContent = todo;
+            const a = document.createElement('a');
+            a.href = '#';
+            a.classList.add('delete-task');
+            a.textContent = todo;
+            li.appendChild(a);
             todosList.appendChild(li);
+
+            a.addEventListener('click', async (e) => {
+                e.preventDefault();
+
+                try {
+                    const deleteResponse = await fetch('/delete', {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            nimi: searchInput,
+                            tehtava: todo,
+                        }),
+                    });
+
+                    if (!deleteResponse.ok) {
+                        throw new Error(await deleteResponse.text());
+                    }
+
+                    deleteMessage.textContent = await deleteResponse.text();
+                    li.remove();
+                } catch (error) {
+                    deleteMessage.textContent = `Virhe: ${error.message}`;
+                }
+            });
         });
+
         deleteUserButton.style.display = 'inline-block';
         deleteUserButton.onclick = async () => {
             try {
                 const deleteResponse = await fetch('/delete', {
                     method: 'DELETE',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ nimi: searchInput })
+                    body: JSON.stringify({ nimi: searchInput }),
                 });
 
                 if (!deleteResponse.ok) {
@@ -81,4 +111,3 @@ searchForm.addEventListener('submit', async (e) => {
         deleteMessage.textContent = `Virhe: ${error.message}`;
     }
 });
-
