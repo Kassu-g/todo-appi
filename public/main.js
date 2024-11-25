@@ -25,3 +25,27 @@ lomake.addEventListener('submit', async (e) => {
         viestiElementti.textContent = `Virhe: ${virhe.message}`;
     }
 });
+searchForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const searchInput = document.getElementById('searchInput').value;
+
+    try {
+        const response = await fetch(`/todos/${searchInput}`);
+        
+        if (!response.ok) {
+            throw new Error(await response.text());
+        }
+        todosList.innerHTML = '';
+        searchMessage.textContent = '';
+        const todos = await response.json();
+        todos.forEach(todo => {
+            const li = document.createElement('li');
+            li.textContent = todo;
+            todosList.appendChild(li);
+        });
+    } catch (error) {
+        todosList.innerHTML = '';
+        searchMessage.textContent = `Virhe: ${error.message}`;
+    }
+});

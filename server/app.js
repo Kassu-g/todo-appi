@@ -2,37 +2,55 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const fs = require('fs');
-const sovellus = express();
+const api1 = express();
 const PORTTI = 3000;
-sovellus.use(cors());
-sovellus.use(bodyParser.json());
-sovellus.use(express.static('public'));
-let kayttajat = [];
-const tallennaDataTiedostoon = () => {
-    fs.writeFileSync('server/data.json', JSON.stringify(kayttajat, null, 2));
+api1.use(cors());
+api1.use(bodyParser.json());
+api1.use(express.static('public'));
+let kayttis = [];
+const tallenna = () => {
+    fs.writeFileSync('server/data.json', JSON.stringify(kayttis, null, 2));
 };
-const lataaDataTiedostosta = () => {
+
+const lataa = () => {
     if (fs.existsSync('server/data.json')) {
-        kayttajat = JSON.parse(fs.readFileSync('server/data.json'));
+        kayttis = JSON.parse(fs.readFileSync('server/data.json'));
     }
 };
-lataaDataTiedostosta();
-sovellus.post('/add', (pyynto, vastaus) => {
+lataa();
+api1.post('/add', (pyynto, vastaus) => {
     const { nimi, tehtava } = pyynto.body;
 
     if (!nimi || !tehtava) {
         return vastaus.status(400).send('inputit ovat pakollisia.');
     }
 
-    let kayttaja = kayttajat.find(k => k.nimi === nimi);
+    let kayttaja = kayttis.find(k => k.nimi === nimi);
+
     if (kayttaja) {
         kayttaja.tehtavat.push(tehtava);
     } else {
         kayttaja = { nimi, tehtavat: [tehtava] };
-        kayttajat.push(kayttaja);
+        kayttis.push(kayttaja);
     }
 
-    tallennaDataTiedostoon();
+    tallenna();
+
     vastaus.send(`Todo added successfully for user ${nimi}.`);
 });
-sovellus.listen(PORTTI, () => console.log(`Täällä toimii http://localhost:${PORTTI}`));
+
+api1.get('/todos/:id', (pyynto, vastaus) => {
+    const { id } = pyynto.params;
+
+    const kayttaja = kayttis.find(k => k.nimi === id);
+
+    if (kayttaja) {
+        vastaus.json(kayttaja.tehtavat);
+    } else {
+        vastaus.status(404).send('User not found');
+    }
+});
+api1.listen(PORTTI, () => console.log(`Täällä toimii http://localhost:${PORTTI}`));
+
+
+
