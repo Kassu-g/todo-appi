@@ -11,7 +11,6 @@ let kayttis = [];
 const tallenna = () => {
     fs.writeFileSync('server/data.json', JSON.stringify(kayttis, null, 2));
 };
-
 const lataa = () => {
     if (fs.existsSync('server/data.json')) {
         kayttis = JSON.parse(fs.readFileSync('server/data.json'));
@@ -24,9 +23,7 @@ api1.post('/add', (pyynto, vastaus) => {
     if (!nimi || !tehtava) {
         return vastaus.status(400).send('inputit ovat pakollisia.');
     }
-
     let kayttaja = kayttis.find(k => k.nimi === nimi);
-
     if (kayttaja) {
         kayttaja.tehtavat.push(tehtava);
     } else {
@@ -38,7 +35,6 @@ api1.post('/add', (pyynto, vastaus) => {
 
     vastaus.send(`Todo added successfully for user ${nimi}.`);
 });
-
 api1.get('/todos/:id', (pyynto, vastaus) => {
     const { id } = pyynto.params;
 
@@ -50,6 +46,18 @@ api1.get('/todos/:id', (pyynto, vastaus) => {
         vastaus.status(404).send('User not found');
     }
 });
+api1.delete('/delete', (pyynto, vastaus) => {
+    const { nimi } = pyynto.body;
+    const poisto = kayttis.findIndex(k => k.nimi === nimi);
+    if (poisto !== -1) {
+        kayttis.splice(poisto, 1);
+        tallenna();
+        vastaus.send('User deleted successfully.');
+    } else {
+        vastaus.status(404).send('User not found.');
+    }
+});
+
 api1.listen(PORTTI, () => console.log(`Täällä toimii http://localhost:${PORTTI}`));
 
 

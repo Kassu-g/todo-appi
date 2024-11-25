@@ -1,5 +1,10 @@
 const lomake = document.getElementById('todoForm');
 const viestiElementti = document.getElementById('message');
+const searchForm = document.getElementById('searchForm');
+const todosList = document.getElementById('todosList');
+const searchMessage = document.getElementById('searchMessage');
+const deleteUserButton = document.getElementById('deleteUser');
+const deleteMessage = document.getElementById('deleteMessage');
 
 lomake.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -25,6 +30,7 @@ lomake.addEventListener('submit', async (e) => {
         viestiElementti.textContent = `Virhe: ${virhe.message}`;
     }
 });
+
 searchForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -32,20 +38,46 @@ searchForm.addEventListener('submit', async (e) => {
 
     try {
         const response = await fetch(`/todos/${searchInput}`);
-        
+
         if (!response.ok) {
             throw new Error(await response.text());
         }
+
         todosList.innerHTML = '';
         searchMessage.textContent = '';
+        deleteMessage.textContent = '';
         const todos = await response.json();
         todos.forEach(todo => {
             const li = document.createElement('li');
             li.textContent = todo;
             todosList.appendChild(li);
         });
+        deleteUserButton.style.display = 'inline-block';
+        deleteUserButton.onclick = async () => {
+            try {
+                const deleteResponse = await fetch('/delete', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ nimi: searchInput })
+                });
+
+                if (!deleteResponse.ok) {
+                    throw new Error(await deleteResponse.text());
+                }
+
+                deleteMessage.textContent = await deleteResponse.text();
+                todosList.innerHTML = '';
+                deleteUserButton.style.display = 'none';
+                searchMessage.textContent = '';
+            } catch (error) {
+                deleteMessage.textContent = `Virhe: ${error.message}`;
+            }
+        };
     } catch (error) {
         todosList.innerHTML = '';
-        searchMessage.textContent = `Virhe: ${error.message}`;
+        deleteUserButton.style.display = 'none';
+        deleteMessage.textContent = `Virhe: ${error.message}`;
     }
 });
