@@ -21,7 +21,7 @@ api1.post('/add', (pyynto, vastaus) => {
     const { nimi, tehtava } = pyynto.body;
 
     if (!nimi || !tehtava) {
-        return vastaus.status(400).send('inputit ovat pakollisia.');
+        return vastaus.status(400).send('Inputit ovat pakollisia.');
     }
     let kayttaja = kayttis.find(k => k.nimi === nimi);
     if (kayttaja) {
@@ -43,7 +43,7 @@ api1.get('/todos/:id', (pyynto, vastaus) => {
     if (kayttaja) {
         vastaus.json(kayttaja.tehtavat);
     } else {
-        vastaus.status(404).send('User not found');
+        vastaus.status(404).send('User not found.');
     }
 });
 api1.delete('/delete', (pyynto, vastaus) => {
