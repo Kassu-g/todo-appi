@@ -33,6 +33,6 @@ sovellus.post('/add', (pyynto, vastaus) => {
     }
 
     tallennaDataTiedostoon();
-    vastaus.send(`user added successfully ${nimi}.`);
+    vastaus.send(`Todo added successfully for user ${nimi}.`);
 });
 sovellus.listen(PORTTI, () => console.log(`Täällä toimii http://localhost:${PORTTI}`));
