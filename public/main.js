@@ -111,3 +111,79 @@ searchForm.addEventListener('submit', async (e) => {
         deleteMessage.textContent = `Virhe: ${error.message}`;
     }
 });
+searchForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const searchInput = document.getElementById('searchInput').value;
+    try {
+        const response = await fetch(`/todos/${searchInput}`);
+
+        if (!response.ok) {
+            throw new Error(await response.text());
+        }
+        todosList.innerHTML = '';
+        searchMessage.textContent = '';
+        deleteMessage.textContent = '';
+        const todos = await response.json();
+        todos.forEach(todo => {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.href = '#';
+            a.classList.add('delete-task');
+            a.textContent = todo;
+            li.appendChild(a);
+            todosList.appendChild(li);
+            a.addEventListener('click', async (e) => {
+                e.preventDefault();
+
+                try {
+                    const poisto = await fetch('/update', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            nimi: searchInput,
+                            tehtava: todo,
+                        }),
+                    });
+
+                    if (!poisto.ok) {
+                        throw new Error(await poisto.text());
+                    }
+
+                    deleteMessage.textContent = await poisto.text();
+                    li.remove();
+                } catch (error) {
+                    deleteMessage.textContent = `Virhe: ${error.message}`;
+                }
+            });
+        });
+        deleteUserButton.style.display = 'inline-block';
+        deleteUserButton.onclick = async () => {
+            try {
+                const deleteResponse = await fetch('/delete', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ nimi: searchInput }),
+                });
+
+                if (!deleteResponse.ok) {
+                    throw new Error(await deleteResponse.text());
+                }
+
+                deleteMessage.textContent = await deleteResponse.text();
+                todosList.innerHTML = '';
+                deleteUserButton.style.display = 'none';
+                searchMessage.textContent = '';
+            } catch (error) {
+                deleteMessage.textContent = `Virhe: ${error.message}`;
+            }
+        };
+    } catch (error) {
+        todosList.innerHTML = '';
+        deleteUserButton.style.display = 'none';
+        deleteMessage.textContent = `Virhe: ${error.message}`;
+    }
+});
